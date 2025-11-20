@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { DOMAINS, ASSESSMENT_OPTIONS } from './constants';
+import { DOMAINS } from './constants';
 import { Answers, CalculationResult } from './types';
 import AssessmentForm from './components/AssessmentForm';
 import ResultsView from './components/ResultsView';
@@ -85,13 +85,6 @@ export default function App() {
     const percentage = maxPossibleScore > 0 ? Math.round((totalScore / maxPossibleScore) * 100) : 0;
 
     // CMMI Levels Logic
-    // Mapped from 5-point scale percentages:
-    // Level 5 average = 100%
-    // Level 4 average = 80%
-    // Level 3 average = 60%
-    // Level 2 average = 40%
-    // Level 1 average = 20%
-
     let maturityLevel = 'Inicial (Nivel 1)';
     let recommendation = 'El SGSI es impredecible y reactivo. Se recomienda establecer la Política de Seguridad, definir el alcance y realizar una evaluación formal de riesgos para pasar al Nivel 2.';
 
@@ -124,17 +117,16 @@ export default function App() {
   // Handlers
   const handleAnswerChange = (qId: string, val: string) => {
     setAnswers(prev => ({ ...prev, [qId]: val }));
-    // Hide results if user changes answers to encourage re-calculation
     if (showResults) setShowResults(false);
   };
 
   const handleSave = async () => {
-    calculateResults(); // Calculate first
+    calculateResults(); 
     setShowResults(true);
     
     if (!userId) {
         if (!isFirebaseReady()) {
-            notify("Resultados calculados. (Guardado deshabilitado en modo demo)", 'info');
+            notify("Resultados calculados. (Modo Demo)", 'info');
         } else {
             notify("Esperando autenticación...", "error");
         }
@@ -165,7 +157,6 @@ export default function App() {
       if (data) {
         setAnswers(data);
         if (!silent) notify("Evaluación cargada.", "success");
-        // We don't auto-show results on load, user should check form
       } else if (!silent) {
         notify("No se encontraron datos previos.", "info");
       }
@@ -178,101 +169,125 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen pb-20">
+    <div className="min-h-screen pb-24 bg-slate-50 font-sans">
       {/* Notification Toast */}
       {notification && (
-        <div className={`fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white font-medium animate-fade-in ${
+        <div className={`fixed top-4 right-4 z-50 px-6 py-3 rounded-xl shadow-2xl text-white font-medium animate-fade-in flex items-center gap-3 ${
           notification.type === 'success' ? 'bg-emerald-600' : 
           notification.type === 'error' ? 'bg-rose-600' : 'bg-slate-800'
         }`}>
+          <div className="w-2 h-2 rounded-full bg-white"></div>
           {notification.msg}
         </div>
       )}
 
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
+      <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 transition-all">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="bg-primary-600 text-white p-1.5 rounded-md">
-               <span className="font-bold text-lg tracking-tighter">ISO</span>
+            <div className="bg-gradient-to-tr from-primary-600 to-primary-500 text-white p-2 rounded-lg shadow-sm">
+               <span className="font-black text-lg tracking-tight leading-none">27K</span>
             </div>
-            <h1 className="font-bold text-slate-800 text-lg hidden sm:block">Autoevaluación 27001:2022</h1>
+            <div>
+                <h1 className="font-bold text-slate-800 text-sm sm:text-base leading-tight">Autoevaluación ISO 27001</h1>
+                <p className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">Modelo de Madurez CMMI</p>
+            </div>
           </div>
-          <div className="text-xs font-mono bg-slate-100 px-3 py-1 rounded-full text-slate-500">
-            ID: {userId ? userId.slice(0, 8) + '...' : 'Modo Local'}
+          <div className="text-xs font-mono bg-slate-100 px-3 py-1.5 rounded-lg text-slate-500 border border-slate-200">
+            {userId ? `ID: ${userId.slice(0, 6)}...` : '● Modo Local'}
           </div>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-8">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
         
-        {/* Introduction */}
+        {/* Hero Section */}
         {!showResults && (
-          <section className="mb-8 bg-gradient-to-br from-primary-800 to-primary-900 rounded-2xl p-8 text-white shadow-xl">
-            <h2 className="text-2xl font-bold mb-2">Evalúe su Nivel de Madurez CMMI</h2>
-            <p className="text-primary-100 max-w-2xl mb-6 leading-relaxed">
-              Herramienta de diagnóstico profesional para PYMEs basada en los controles de la norma ISO 27001:2022.
-              Complete el cuestionario para visualizar sus fortalezas y áreas de mejora.
-            </p>
-            <div className="flex flex-wrap gap-4 text-sm">
-               <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-lg backdrop-blur-sm">
-                  <InfoIcon className="w-4 h-4" />
-                  <span>5 Niveles CMMI</span>
-               </div>
-               <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-lg backdrop-blur-sm">
-                  <InfoIcon className="w-4 h-4" />
-                  <span>7 Dominios Clave</span>
-               </div>
+          <section className="mb-10 relative overflow-hidden bg-slate-900 rounded-3xl text-white shadow-2xl ring-1 ring-slate-900/5">
+            {/* Decorative background elements */}
+            <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-primary-500 opacity-20 blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-blue-600 opacity-20 blur-3xl"></div>
+            
+            <div className="relative p-8 sm:p-10">
+                <div className="max-w-3xl">
+                    <h2 className="text-3xl sm:text-4xl font-extrabold mb-4 tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-300">
+                        Evalúe la seguridad de su información
+                    </h2>
+                    <p className="text-slate-300 text-lg mb-8 leading-relaxed max-w-2xl">
+                        Diagnóstico profesional basado en los controles de ISO/IEC 27001:2022. 
+                        Obtenga un análisis visual de sus fortalezas y una hoja de ruta clara hacia la certificación.
+                    </p>
+                    <div className="flex flex-wrap gap-3 text-sm font-medium">
+                        <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full border border-white/10 hover:bg-white/20 transition-colors">
+                            <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
+                            <span>5 Niveles CMMI</span>
+                        </div>
+                        <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full border border-white/10 hover:bg-white/20 transition-colors">
+                            <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                            <span>7 Dominios Críticos</span>
+                        </div>
+                    </div>
+                </div>
             </div>
           </section>
         )}
 
-        {/* Actions Bar */}
-        <div className="sticky top-20 z-20 bg-slate-50/95 backdrop-blur-sm py-4 mb-6 border-b border-slate-200 flex flex-wrap gap-3 justify-between items-center">
-           <div className="text-sm text-slate-500 font-medium">
-              Progreso: {Object.keys(answers).length} respuestas
+        {/* Sticky Actions Bar */}
+        <div className="sticky top-16 z-30 -mx-4 sm:-mx-6 px-4 sm:px-6 py-4 mb-8 bg-white/80 backdrop-blur-lg border-b border-slate-200/50 shadow-sm flex flex-wrap gap-4 justify-between items-center transition-all">
+           <div className="flex items-center gap-3">
+                <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-500 font-bold text-sm">
+                    {Math.round((Object.keys(answers).length / DOMAINS.reduce((acc,d) => acc + d.questions.length, 0)) * 100)}%
+                </div>
+                <div>
+                   <p className="text-sm font-bold text-slate-700">Progreso de Evaluación</p>
+                   <p className="text-xs text-slate-500">{Object.keys(answers).length} preguntas respondidas</p>
+                </div>
            </div>
+           
            <div className="flex gap-3 w-full sm:w-auto">
               <button 
                 onClick={() => userId && handleLoad(userId)}
                 disabled={loading || !userId}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-300 text-slate-700 font-semibold rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 shadow-sm text-sm"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-white border border-slate-300 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 hover:border-slate-400 transition-all disabled:opacity-50 shadow-sm text-sm active:scale-95"
               >
                 <CloudDownloadIcon className="w-4 h-4" />
-                <span className="hidden sm:inline">Cargar</span>
+                <span className="">Cargar</span>
               </button>
               <button 
                 onClick={handleSave}
                 disabled={loading}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors shadow-md disabled:opacity-70 text-sm"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 hover:shadow-lg hover:shadow-primary-500/30 transition-all shadow-md disabled:opacity-70 text-sm active:scale-95"
               >
-                {loading ? 'Procesando...' : 'Guardar y Calcular'}
+                {loading ? 'Procesando...' : showResults ? 'Recalcular' : 'Ver Resultados'}
                 <SaveIcon className="w-4 h-4" />
               </button>
            </div>
         </div>
 
-        {/* Incomplete Warning */}
+        {/* Warning for incomplete data */}
         {results && results.answeredCount < results.totalQuestions && showResults && (
-             <div className="mb-8 bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg flex items-start gap-3">
-                <AlertTriangleIcon className="w-5 h-5 text-amber-600 mt-0.5" />
+             <div className="mb-8 bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-start gap-4 animate-fade-in">
+                <div className="p-2 bg-amber-100 rounded-lg text-amber-600">
+                    <AlertTriangleIcon className="w-5 h-5" />
+                </div>
                 <div>
-                    <h4 className="font-bold text-amber-800">Evaluación Incompleta</h4>
-                    <p className="text-sm text-amber-700">El resultado del nivel CMMI puede no ser preciso hasta que complete todos los campos.</p>
+                    <h4 className="font-bold text-amber-900">Atención: Evaluación Parcial</h4>
+                    <p className="text-sm text-amber-700 mt-1">El diagnóstico de madurez será más preciso cuando complete todas las preguntas. Actualmente se asume puntaje 0 para los campos vacíos.</p>
                 </div>
              </div>
         )}
 
-        {/* Content Area */}
+        {/* Main Content Area */}
         {showResults && results ? (
           <div className="space-y-8">
             <ResultsView results={results} />
-            <div className="flex justify-center pt-8">
+            <div className="flex justify-center pt-12 pb-8">
                 <button 
                     onClick={() => setShowResults(false)}
-                    className="text-primary-600 font-semibold hover:underline hover:text-primary-800"
+                    className="group flex items-center gap-2 text-slate-500 font-medium hover:text-primary-600 transition-colors px-6 py-3 rounded-full hover:bg-white hover:shadow-sm border border-transparent hover:border-slate-200"
                 >
-                    ← Volver al cuestionario para editar
+                    <span className="group-hover:-translate-x-1 transition-transform">←</span> 
+                    Volver al cuestionario para editar respuestas
                 </button>
             </div>
           </div>
@@ -282,14 +297,13 @@ export default function App() {
 
       </main>
 
-      <footer className="mt-12 py-8 border-t border-slate-200 bg-slate-100 text-center">
-        <div className="max-w-4xl mx-auto px-4">
-            <p className="text-slate-500 text-sm">
-            Basado en los requisitos y controles principales de ISO/IEC 27001:2022.
+      <footer className="mt-auto py-10 border-t border-slate-200 bg-white text-center">
+        <div className="max-w-5xl mx-auto px-4">
+            <p className="text-slate-800 font-semibold mb-2">Sistema de Autoevaluación ISO 27001</p>
+            <p className="text-slate-500 text-sm max-w-md mx-auto">
+            Herramienta simplificada para el análisis de brechas de seguridad de la información en PYMEs.
             </p>
-            <p className="text-slate-400 text-xs mt-2">
-            © 2025 Herramienta de Autoevaluación.
-            </p>
+            <div className="mt-6 text-xs text-slate-400 font-mono">v2.0.1 • 2025</div>
         </div>
       </footer>
     </div>

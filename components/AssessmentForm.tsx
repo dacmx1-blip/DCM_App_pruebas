@@ -1,7 +1,6 @@
 import React from 'react';
 import { DOMAINS, ASSESSMENT_OPTIONS } from '../constants';
 import { Answers } from '../types';
-import { ChevronRightIcon } from './icons';
 
 interface AssessmentFormProps {
   answers: Answers;
@@ -10,40 +9,47 @@ interface AssessmentFormProps {
 
 const AssessmentForm: React.FC<AssessmentFormProps> = ({ answers, onAnswerChange }) => {
   return (
-    <div className="space-y-8">
-      {DOMAINS.map((domain) => (
+    <div className="space-y-10">
+      {DOMAINS.map((domain, index) => (
         <div 
           key={domain.id} 
-          className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden transition-all hover:shadow-md"
+          className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-shadow duration-300"
         >
-          <div className="bg-slate-50 px-6 py-4 border-b border-slate-100">
-            <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-              <span className="bg-primary-100 text-primary-700 text-xs font-bold px-2 py-1 rounded uppercase tracking-wider">
-                {domain.id.toUpperCase()}
-              </span>
-              {domain.title}
-            </h3>
-            <p className="text-slate-500 text-sm mt-1 ml-1">{domain.description}</p>
+          {/* Header Section of Domain */}
+          <div className="bg-slate-50/50 px-8 py-6 border-b border-slate-100">
+            <div className="flex items-center gap-3 mb-2">
+                <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-slate-200 text-slate-600 font-bold text-xs shadow-inner">
+                    {index + 1}
+                </span>
+                <h3 className="text-xl font-bold text-slate-800 tracking-tight">
+                {domain.title}
+                </h3>
+            </div>
+            <p className="text-slate-500 text-sm pl-11 max-w-3xl leading-relaxed">{domain.description}</p>
           </div>
 
-          <div className="p-6 space-y-6">
+          {/* Questions Section */}
+          <div className="p-8 space-y-10">
             {domain.questions.map((q) => (
-              <div key={q.id} className="animate-slide-up">
-                <p className="font-medium text-slate-700 mb-3 text-sm md:text-base">
-                  {q.text}
-                </p>
-                {/* Changed grid layout to accommodate 6 options nicely (1 on mobile, 2 on tablet, 3 on desktop) */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div key={q.id} className="animate-slide-up group">
+                <div className="flex flex-col md:flex-row md:items-baseline gap-2 mb-4">
+                    <span className="text-xs font-mono text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">{q.id.toUpperCase()}</span>
+                    <p className="font-medium text-slate-800 text-base group-hover:text-primary-700 transition-colors">
+                    {q.text}
+                    </p>
+                </div>
+                
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                   {ASSESSMENT_OPTIONS.map((opt) => {
                     const isSelected = answers[q.id] === opt.value;
                     return (
                       <label
                         key={`${q.id}-${opt.value}`}
                         className={`
-                          relative flex items-center px-4 py-3 rounded-lg cursor-pointer border text-sm font-medium transition-all duration-200
+                          relative flex flex-col items-center justify-center px-2 py-3 rounded-xl cursor-pointer border transition-all duration-200 text-center h-full
                           ${isSelected 
-                            ? `${opt.colorClass} ring-2 ring-offset-1 ring-primary-200 shadow-sm` 
-                            : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'
+                            ? `${opt.colorClass} ring-2 ring-offset-1 ring-primary-200 shadow-md transform -translate-y-0.5 font-bold` 
+                            : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-700'
                           }
                         `}
                       >
@@ -55,9 +61,13 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({ answers, onAnswerChange
                           onChange={(e) => onAnswerChange(q.id, e.target.value)}
                           className="sr-only"
                         />
-                        <span>{opt.label}</span>
+                        <span className="text-lg font-bold mb-1 block">{opt.value}</span>
+                        <span className="text-[10px] uppercase tracking-tight leading-tight line-clamp-2 px-1">
+                            {opt.label.split('(')[0]}
+                        </span>
+                        
                         {isSelected && (
-                          <div className="absolute top-1/2 right-3 -translate-y-1/2 w-2.5 h-2.5 bg-current rounded-full opacity-60"></div>
+                          <div className="absolute top-2 right-2 w-1.5 h-1.5 bg-current rounded-full"></div>
                         )}
                       </label>
                     );
